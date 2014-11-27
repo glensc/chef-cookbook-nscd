@@ -22,8 +22,18 @@ package 'nscd' do
   not_if { platform?('smartos') }
 end
 
+service_name = value_for_platform_family(
+  'smartos' => 'name-service-cache:default'
+  'default' => 'nscd'
+)
+
+# Debian exception, see https://github.com/opscode-cookbooks/nscd/issues/8
+case node['nscd']['package'] == 'unscd' && platform_family?('debian')
+  service_name = node['nscd']['package']
+end
+
 service 'nscd' do
-  service_name 'name-service-cache:default' if platform?('smartos')
+  service_name service_name
   supports :restart => true, :status => true
   action   [:enable, :start]
 end
